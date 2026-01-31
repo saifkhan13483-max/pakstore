@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font-next";
+import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import { cn } from "../lib/utils";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -39,7 +41,11 @@ export default function RootLayout({
         )}
       >
         <div className="relative flex min-h-screen flex-col">
-          {children}
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
         </div>
       </body>
     </html>
