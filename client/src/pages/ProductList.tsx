@@ -96,7 +96,7 @@ export default function ProductList() {
               We couldn't find any products matching your criteria. Try different keywords or clear the filters.
             </p>
             <Button 
-              variant="link" 
+              variant="ghost" 
               onClick={() => {
                 setSearch("");
                 setLocation("/products");

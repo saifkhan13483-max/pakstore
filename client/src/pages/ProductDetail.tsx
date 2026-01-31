@@ -149,8 +149,8 @@ export default function ProductDetail() {
                 </Badge>
                 <div className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
                   <Star className="w-4 h-4 fill-current" />
-                  <span className="text-gray-900">{product.rating}</span>
-                  <span className="text-muted-foreground font-normal">({product.reviewCount} Reviews)</span>
+                  <span className="text-gray-900">{product.rating ? String(product.rating) : "0"}</span>
+                  <span className="text-muted-foreground font-normal">({product.reviewCount || 0} Reviews)</span>
                 </div>
               </div>
 
