@@ -3,6 +3,13 @@ import { Input } from "@/components/ui/input"
 import { ShoppingCart, Search, Menu, Phone, Mail, MapPin } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 export function Header() {
   return (
@@ -29,9 +36,36 @@ export function Header() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo & Mobile Menu */}
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu">
-              <Menu className="w-6 h-6" />
-            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                <SheetHeader className="text-left border-b pb-4">
+                  <SheetTitle className="text-2xl font-bold text-primary">
+                    STORE<span className="text-secondary">.PK</span>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-4 py-6">
+                  <div className="relative">
+                    <Input 
+                      type="search" 
+                      placeholder="Search products..." 
+                      className="pl-10 h-10 w-full"
+                    />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <nav className="flex flex-col gap-4">
+                    <Link href="/" className="text-lg font-medium hover:text-primary transition-colors">Home</Link>
+                    <Link href="/products" className="text-lg font-medium hover:text-primary transition-colors">Shop</Link>
+                    <Link href="/about" className="text-lg font-medium hover:text-primary transition-colors">About</Link>
+                    <Link href="/contact" className="text-lg font-medium hover:text-primary transition-colors">Contact</Link>
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
             <Link href="/" className="text-2xl font-bold text-primary tracking-tight">
               STORE<span className="text-secondary">.PK</span>
             </Link>
