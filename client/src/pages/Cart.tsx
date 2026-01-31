@@ -106,7 +106,7 @@ export default function Cart() {
                     <div className="flex items-center gap-3 bg-gray-50 p-1 rounded-lg border border-gray-200">
                       <button 
                         className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm transition-all text-gray-600 disabled:opacity-50"
-                        onClick={() => updateQuantity({ id: item.id, quantity: item.quantity - 1 })}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         disabled={item.quantity <= 1}
                       >
                         <Minus className="w-3 h-3" />
@@ -114,7 +114,7 @@ export default function Cart() {
                       <span className="text-sm font-semibold w-4 text-center">{item.quantity}</span>
                       <button 
                         className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm transition-all text-gray-600"
-                        onClick={() => updateQuantity({ id: item.id, quantity: item.quantity + 1 })}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       >
                         <Plus className="w-3 h-3" />
                       </button>
