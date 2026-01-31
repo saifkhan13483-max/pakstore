@@ -1,13 +1,20 @@
 import { ProductCard } from "@/components/products/ProductCard"
+import { Filters } from "@/components/products/Filters"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { 
   ChevronRight, 
   Filter, 
   LayoutGrid, 
-  List, 
-  SlidersHorizontal 
+  List,
 } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import Link from "next/link"
 
 const ALL_PRODUCTS = [
@@ -36,39 +43,8 @@ export default function ProductsPage() {
       <div className="container py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar (Desktop) */}
-          <aside className="hidden lg:block w-64 shrink-0 space-y-8">
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b pb-4">
-                <h2 className="font-bold text-slate-900 flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4" /> Filters
-                </h2>
-                <button className="text-xs text-primary hover:underline font-medium">Clear All</button>
-              </div>
-
-              {/* Placeholder Filter Sections */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-sm">Categories</h3>
-                <div className="space-y-2">
-                  {["Electronics", "Fashion", "Home Goods", "Accessories"].map((cat) => (
-                    <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-                      <div className="w-4 h-4 rounded border border-slate-300 group-hover:border-primary transition-colors" />
-                      <span className="text-sm text-slate-600 group-hover:text-slate-900">{cat}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="font-semibold text-sm">Price Range</h3>
-                <div className="space-y-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <Input placeholder="Min" className="h-8" />
-                    <span>-</span>
-                    <Input placeholder="Max" className="h-8" />
-                  </div>
-                </div>
-              </div>
-            </div>
+          <aside className="hidden lg:block w-64 shrink-0">
+            <Filters />
           </aside>
 
           {/* Main Content */}
@@ -76,9 +52,19 @@ export default function ProductsPage() {
             {/* Toolbar */}
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm" className="lg:hidden gap-2">
-                  <Filter className="w-4 h-4" /> Filters
-                </Button>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="lg:hidden gap-2">
+                      <Filter className="w-4 h-4" /> Filters
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                    <SheetHeader className="text-left border-b pb-4 mb-4">
+                      <SheetTitle>Filters</SheetTitle>
+                    </SheetHeader>
+                    <Filters />
+                  </SheetContent>
+                </Sheet>
                 <p className="text-sm text-slate-500">
                   Showing <span className="font-bold text-slate-900">{ALL_PRODUCTS.length}</span> products
                 </p>
