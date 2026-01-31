@@ -9,14 +9,51 @@ import {
   ChevronRight, 
   Lock, 
   Truck, 
-  CreditCard 
+  CreditCard,
+  User,
+  Mail,
+  Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+
+const contactSchema = z.object({
+  fullName: z.string().min(3, "Full name must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().regex(/^((\+92)|(0))3[0-9]{2}[0-9]{7}$/, "Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)"),
+});
+
+type ContactValues = z.infer<typeof contactSchema>;
 
 export default function Checkout() {
   const { items, subtotal, isLoading } = useCart();
   const [, setLocation] = useLocation();
+
+  const form = useForm<ContactValues>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+    },
+  });
+
+  const onSubmit = (data: ContactValues) => {
+    console.log(data);
+    // Proceed to next step in next parts
+  };
 
   const shippingThreshold = 2000;
   const shippingCharge = 200;
@@ -77,19 +114,69 @@ export default function Checkout() {
                 <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest text-primary border-primary/20">Step 1 of 2</Badge>
               </div>
               <div className="p-8">
-                <div className="space-y-6 opacity-50 pointer-events-none">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-                    <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-                  </div>
-                  <div className="h-20 bg-gray-100 rounded-lg animate-pulse" />
-                  <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-                </div>
-                <div className="mt-8 text-center p-6 border-2 border-dashed border-gray-100 rounded-2xl">
-                  <p className="text-sm text-muted-foreground font-medium italic">
-                    Checkout forms (Part 19-22) will be implemented in the next steps.
-                  </p>
-                </div>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-gray-400" /> Full Name
+                          </FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your full name" {...field} className="h-12 rounded-xl" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-gray-400" /> Email Address
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="email@example.com" {...field} className="h-12 rounded-xl" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-gray-400" /> Mobile Number
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="03XXXXXXXXX" {...field} className="h-12 rounded-xl" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <ShieldCheck className="w-4 h-4" />
+                        Your data is safe and encrypted
+                      </div>
+                      <Button type="submit" className="h-12 px-8 rounded-full font-bold shadow-lg shadow-primary/20">
+                        Continue to Shipping
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
               </div>
             </div>
 
