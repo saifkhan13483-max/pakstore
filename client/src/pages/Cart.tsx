@@ -3,11 +3,14 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Truck, ShieldCheck } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Truck, ShieldCheck, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export default function Cart() {
   const { items, isLoading, subtotal, updateQuantity, removeItem, clearCart } = useCart();
+  const [promoCode, setPromoCode] = useState("");
 
   const shippingThreshold = 2000;
   const shippingCharge = 200;
@@ -15,6 +18,15 @@ export default function Cart() {
   const total = subtotal + shipping;
 
   const freeShippingAmount = shippingThreshold - subtotal;
+  
+  // Delivery date estimation (3-5 days)
+  const today = new Date();
+  const minDelivery = new Date(today);
+  minDelivery.setDate(today.getDate() + 3);
+  const maxDelivery = new Date(today);
+  maxDelivery.setDate(today.getDate() + 5);
+  
+  const deliveryRange = `${minDelivery.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${maxDelivery.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`;
 
   if (isLoading) {
     return (
@@ -160,6 +172,24 @@ export default function Cart() {
                     Free shipping on orders over Rs. {shippingThreshold.toLocaleString()}
                   </p>
                 )}
+                <div className="flex justify-between text-gray-600">
+                  <span>Estimated Delivery</span>
+                  <span className="font-medium">{deliveryRange}</span>
+                </div>
+                
+                <div className="pt-4 space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Promo Code</p>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Enter code" 
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      className="h-10 text-sm"
+                    />
+                    <Button variant="outline" size="sm" className="h-10 px-4">Apply</Button>
+                  </div>
+                </div>
+
                 <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
                   <span className="font-bold text-lg text-secondary">Total</span>
                   <span className="font-bold text-2xl text-secondary">Rs. {total.toLocaleString()}</span>

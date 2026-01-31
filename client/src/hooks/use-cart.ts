@@ -109,13 +109,31 @@ export function useCart() {
     return acc + (price * item.quantity);
   }, 0) || 0;
 
+  const updateQuantity = (id: number, quantity: number) => {
+    const item = query.data?.find(i => i.id === id);
+    if (!item || !item.product) return;
+    
+    // Stock limit validation
+    if (quantity > item.product.stockCount) {
+      toast({
+        title: "Stock limit reached",
+        description: `Only ${item.product.stockCount} units available in stock.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (quantity < 1) return;
+    updateQuantityMutation.mutate({ id, quantity });
+  };
+
   return {
     items: query.data || [],
     isLoading: query.isLoading,
     subtotal,
     addItem: addItemMutation.mutate,
     isAdding: addItemMutation.isPending,
-    updateQuantity: updateQuantityMutation.mutate,
+    updateQuantity,
     removeItem: removeItemMutation.mutate,
     clearCart: clearCartMutation.mutate,
   };
