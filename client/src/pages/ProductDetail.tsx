@@ -22,7 +22,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export default function ProductDetail() {
-  const [, params] = useRoute("/products/:slug");
+  const [, params] = useRoute<{ slug: string }>("/products/:slug");
   const slug = params?.slug || "";
   const { data: product, isLoading } = useProduct(slug);
   const { addItem, isAdding } = useCart();

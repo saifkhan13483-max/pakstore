@@ -9,8 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Cart() {
   const { items, isLoading, subtotal, updateQuantity, removeItem, clearCart } = useCart();
 
-  const shipping = 200; // Flat rate
-  const total = subtotal + (items.length > 0 ? shipping : 0);
+  const shippingThreshold = 2000;
+  const shippingCharge = 200;
+  const shipping = subtotal >= shippingThreshold ? 0 : shippingCharge;
+  const total = subtotal + shipping;
+
+  const freeShippingAmount = shippingThreshold - subtotal;
 
   if (isLoading) {
     return (
@@ -127,6 +131,15 @@ export default function Cart() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
               <h2 className="text-xl font-heading font-bold mb-6">Order Summary</h2>
               
+              {subtotal < shippingThreshold && (
+                <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl border border-emerald-100 mb-6 flex items-center gap-3">
+                  <Truck className="w-5 h-5" />
+                  <p className="text-sm font-medium">
+                    Add <span className="font-bold text-lg">Rs. {freeShippingAmount.toLocaleString()}</span> more for <span className="font-bold">FREE DELIVERY</span>!
+                  </p>
+                </div>
+              )}
+              
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
@@ -134,17 +147,30 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
-                  <span className="font-medium">Rs. {shipping.toLocaleString()}</span>
+                  <span className="font-medium">
+                    {shipping === 0 ? (
+                      <span className="text-emerald-600 font-bold uppercase tracking-wide text-xs">Free</span>
+                    ) : (
+                      `Rs. ${shipping.toLocaleString()}`
+                    )}
+                  </span>
                 </div>
+                {shipping > 0 && (
+                  <p className="text-[10px] text-muted-foreground text-right mt-1">
+                    Free shipping on orders over Rs. {shippingThreshold.toLocaleString()}
+                  </p>
+                )}
                 <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
                   <span className="font-bold text-lg text-secondary">Total</span>
                   <span className="font-bold text-2xl text-secondary">Rs. {total.toLocaleString()}</span>
                 </div>
               </div>
 
-              <Button size="lg" className="w-full h-12 text-lg rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-emerald-700">
-                Checkout <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
+              <Link href="/checkout">
+                <Button size="lg" className="w-full h-12 text-lg rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-emerald-700">
+                  Proceed to Checkout <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
 
               <div className="mt-6 flex items-center justify-center gap-2 text-xs text-gray-400">
                 <ShieldCheck className="w-4 h-4" /> Secure Checkout
