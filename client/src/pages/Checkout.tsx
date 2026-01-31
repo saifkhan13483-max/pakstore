@@ -85,6 +85,17 @@ export default function Checkout() {
   const shipping = subtotal >= shippingThreshold ? 0 : shippingCharge;
   const total = subtotal + shipping;
 
+  const selectedCity = form.watch("city");
+
+  // Delivery date estimation (3-5 days)
+  const today = new Date();
+  const minDelivery = new Date(today);
+  minDelivery.setDate(today.getDate() + 3);
+  const maxDelivery = new Date(today);
+  maxDelivery.setDate(today.getDate() + 5);
+  
+  const deliveryRange = `${minDelivery.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${maxDelivery.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`;
+
   useEffect(() => {
     if (!isLoading && items.length === 0) {
       setLocation("/cart");
@@ -352,6 +363,12 @@ export default function Checkout() {
                       {shipping === 0 ? "FREE" : `Rs. ${shipping.toLocaleString()}`}
                     </span>
                   </div>
+                  {selectedCity && (
+                    <div className="flex justify-between text-xs text-muted-foreground italic">
+                      <span>Delivery to {selectedCity}</span>
+                      <span>Est: {deliveryRange}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-4">
                     <span className="font-heading font-bold text-lg text-secondary">Total</span>
                     <span className="font-heading font-extrabold text-2xl text-primary">Rs. {total.toLocaleString()}</span>
