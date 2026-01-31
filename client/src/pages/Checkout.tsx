@@ -12,10 +12,13 @@ import {
   CreditCard,
   User,
   Mail,
-  Phone
+  Phone,
+  Building2,
+  Wallet,
+  CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,6 +29,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
@@ -37,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const PAKISTANI_CITIES = [
   "Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", 
@@ -53,13 +58,17 @@ const contactSchema = z.object({
   city: z.string().min(1, "Please select your city"),
   postalCode: z.string().optional(),
   instructions: z.string().optional(),
+  paymentMethod: z.enum(["cod", "bank", "jazzcash", "easypaisa"], {
+    required_error: "Please select a payment method",
+  }),
 });
 
 type ContactValues = z.infer<typeof contactSchema>;
 
 export default function Checkout() {
-  const { items, subtotal, isLoading } = useCart();
+  const { items, subtotal, isLoading, clearCart } = useCart();
   const [, setLocation] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ContactValues>({
     resolver: zodResolver(contactSchema),
@@ -72,12 +81,27 @@ export default function Checkout() {
       city: "",
       postalCode: "",
       instructions: "",
+      paymentMethod: "cod",
     },
   });
 
-  const onSubmit = (data: ContactValues) => {
-    console.log(data);
-    // Proceed to next step in next parts
+  const onSubmit = async (data: ContactValues) => {
+    setIsSubmitting(true);
+    // Mock API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Store order details for thank you page
+    const orderId = `PK-${Math.floor(100000 + Math.random() * 900000)}`;
+    localStorage.setItem("last_order", JSON.stringify({
+      id: orderId,
+      details: data,
+      items: items,
+      total: total,
+    }));
+
+    clearCart();
+    setIsSubmitting(false);
+    setLocation("/thank-you");
   };
 
   const shippingThreshold = 2000;
@@ -86,6 +110,7 @@ export default function Checkout() {
   const total = subtotal + shipping;
 
   const selectedCity = form.watch("city");
+  const selectedPayment = form.watch("paymentMethod");
 
   // Delivery date estimation (3-5 days)
   const today = new Date();
@@ -97,18 +122,18 @@ export default function Checkout() {
   const deliveryRange = `${minDelivery.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${maxDelivery.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`;
 
   useEffect(() => {
-    if (!isLoading && items.length === 0) {
+    if (!isLoading && items.length === 0 && !isSubmitting) {
       setLocation("/cart");
     }
-  }, [items, isLoading, setLocation]);
+  }, [items, isLoading, setLocation, isSubmitting]);
 
   const steps = [
     { id: "cart", label: "Cart", completed: true },
-    { id: "details", label: "Details", active: true },
-    { id: "payment", label: "Payment", active: false },
+    { id: "details", label: "Details", completed: form.formState.isValid },
+    { id: "payment", label: "Payment", active: true },
   ];
 
-  if (isLoading || items.length === 0) return null;
+  if (isLoading || (items.length === 0 && !isSubmitting)) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -140,190 +165,313 @@ export default function Checkout() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mt-8">
-          {/* Left: Checkout Form Stub */}
+          {/* Left: Checkout Form */}
           <div className="lg:col-span-7 space-y-8">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
-                <h2 className="text-xl font-heading font-bold text-secondary flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-primary" /> Shipping Information
-                </h2>
-                <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest text-primary border-primary/20">Step 1 of 2</Badge>
-              </div>
-              <div className="p-8">
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+                    <h2 className="text-xl font-heading font-bold text-secondary flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-primary" /> Shipping Information
+                    </h2>
+                    <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest text-primary border-primary/20">Step 1 of 2</Badge>
+                  </div>
+                  <div className="p-8">
+                    <div className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <User className="w-4 h-4 text-gray-400" /> Full Name
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your full name" {...field} className="h-12 rounded-xl" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-gray-400" /> Email Address
+                              </FormLabel>
+                              <FormControl>
+                                <Input placeholder="email@example.com" {...field} className="h-12 rounded-xl" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-gray-400" /> Mobile Number
+                              </FormLabel>
+                              <FormControl>
+                                <Input placeholder="03XXXXXXXXX" {...field} className="h-12 rounded-xl" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="pt-8 border-t border-gray-100">
+                        <h3 className="text-lg font-heading font-bold text-secondary mb-6 flex items-center gap-2">
+                          <Truck className="w-5 h-5 text-primary" /> Shipping Address
+                        </h3>
+                        
+                        <div className="space-y-6">
+                          <FormField
+                            control={form.control}
+                            name="address"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Street Address</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="House #, Street #, Block/Phase..." 
+                                    {...field} 
+                                    className="rounded-xl resize-none" 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="area"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Area / Locality</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="e.g. Gulberg, DHA, Bahria" {...field} className="h-12 rounded-xl" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="city"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>City</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger className="h-12 rounded-xl">
+                                        <SelectValue placeholder="Select your city" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {PAKISTANI_CITIES.map(city => (
+                                        <SelectItem key={city} value={city}>{city}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="postalCode"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Postal Code (Optional)</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="e.g. 54000" {...field} className="h-12 rounded-xl" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name="instructions"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Delivery Instructions (Optional)</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Any special notes for the rider..." 
+                                    {...field} 
+                                    className="rounded-xl resize-none h-20" 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+                    <h2 className="text-xl font-heading font-bold text-secondary flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-primary" /> Payment Method
+                    </h2>
+                    <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest text-primary border-primary/20">Step 2 of 2</Badge>
+                  </div>
+                  <div className="p-8">
                     <FormField
                       control={form.control}
-                      name="fullName"
+                      name="paymentMethod"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-400" /> Full Name
-                          </FormLabel>
+                        <FormItem className="space-y-4">
                           <FormControl>
-                            <Input placeholder="Enter your full name" {...field} className="h-12 rounded-xl" />
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="grid grid-cols-1 gap-4"
+                            >
+                              <FormItem>
+                                <FormControl>
+                                  <RadioGroupItem value="cod" className="sr-only" />
+                                </FormControl>
+                                <FormLabel className={cn(
+                                  "flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all",
+                                  field.value === "cod" ? "border-primary bg-emerald-50/50 shadow-sm" : "border-gray-100 hover:border-gray-200"
+                                )}>
+                                  <div className="flex items-center gap-4">
+                                    <div className={cn(
+                                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                      field.value === "cod" ? "bg-primary text-white" : "bg-gray-100 text-gray-500"
+                                    )}>
+                                      <Wallet className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-secondary flex items-center gap-2">
+                                        Cash on Delivery
+                                        <Badge className="bg-orange-500 text-white border-0 py-0 px-2">Most Popular</Badge>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground mt-0.5">Pay when you receive your order</p>
+                                    </div>
+                                  </div>
+                                  {field.value === "cod" && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
+                                </FormLabel>
+                              </FormItem>
+
+                              <FormItem>
+                                <FormControl>
+                                  <RadioGroupItem value="bank" className="sr-only" />
+                                </FormControl>
+                                <FormLabel className={cn(
+                                  "flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all",
+                                  field.value === "bank" ? "border-primary bg-emerald-50/50 shadow-sm" : "border-gray-100 hover:border-gray-200"
+                                )}>
+                                  <div className="flex items-center gap-4">
+                                    <div className={cn(
+                                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                      field.value === "bank" ? "bg-primary text-white" : "bg-gray-100 text-gray-500"
+                                    )}>
+                                      <Building2 className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-secondary">Bank Transfer</div>
+                                      <p className="text-xs text-muted-foreground mt-0.5">Transfer directly to our account</p>
+                                    </div>
+                                  </div>
+                                  {field.value === "bank" && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
+                                </FormLabel>
+                                {field.value === "bank" && (
+                                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-600 space-y-1">
+                                    <p className="font-bold">Bank Account Details:</p>
+                                    <p>Bank: Meezan Bank Ltd</p>
+                                    <p>Account Title: PK eCommerce Store</p>
+                                    <p>Account Number: 0283XXXXXXXXXXXX</p>
+                                    <p>IBAN: PK82MEZNXXXXXXXXXXXXXXXX</p>
+                                  </div>
+                                )}
+                              </FormItem>
+
+                              <FormItem>
+                                <FormControl>
+                                  <RadioGroupItem value="jazzcash" disabled className="sr-only" />
+                                </FormControl>
+                                <FormLabel className="flex items-center justify-between p-4 rounded-xl border-2 border-gray-50 bg-gray-50/30 opacity-60 cursor-not-allowed">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center">
+                                      <div className="font-extrabold text-[10px]">JC</div>
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-gray-400 flex items-center gap-2">
+                                        JazzCash
+                                        <Badge className="bg-gray-400 text-white border-0 py-0 px-2">Coming Soon</Badge>
+                                      </div>
+                                      <p className="text-xs text-gray-400 mt-0.5">Mobile wallet payment</p>
+                                    </div>
+                                  </div>
+                                </FormLabel>
+                              </FormItem>
+
+                              <FormItem>
+                                <FormControl>
+                                  <RadioGroupItem value="easypaisa" disabled className="sr-only" />
+                                </FormControl>
+                                <FormLabel className="flex items-center justify-between p-4 rounded-xl border-2 border-gray-50 bg-gray-50/30 opacity-60 cursor-not-allowed">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center">
+                                      <div className="font-extrabold text-[10px]">EP</div>
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-gray-400 flex items-center gap-2">
+                                        EasyPaisa
+                                        <Badge className="bg-gray-400 text-white border-0 py-0 px-2">Coming Soon</Badge>
+                                      </div>
+                                      <p className="text-xs text-gray-400 mt-0.5">Mobile wallet payment</p>
+                                    </div>
+                                  </div>
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  </div>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Mail className="w-4 h-4 text-gray-400" /> Email Address
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="email@example.com" {...field} className="h-12 rounded-xl" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Phone className="w-4 h-4 text-gray-400" /> Mobile Number
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="03XXXXXXXXX" {...field} className="h-12 rounded-xl" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="pt-8 border-t border-gray-100">
-                      <h3 className="text-lg font-heading font-bold text-secondary mb-6 flex items-center gap-2">
-                        <Truck className="w-5 h-5 text-primary" /> Shipping Address
-                      </h3>
-                      
-                      <div className="space-y-6">
-                        <FormField
-                          control={form.control}
-                          name="address"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Street Address</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="House #, Street #, Block/Phase..." 
-                                  {...field} 
-                                  className="rounded-xl resize-none" 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <FormField
-                            control={form.control}
-                            name="area"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Area / Locality</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="e.g. Gulberg, DHA, Bahria" {...field} className="h-12 rounded-xl" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="city"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>City</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-12 rounded-xl">
-                                      <SelectValue placeholder="Select your city" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {PAKISTANI_CITIES.map(city => (
-                                      <SelectItem key={city} value={city}>{city}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <FormField
-                            control={form.control}
-                            name="postalCode"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Postal Code (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="e.g. 54000" {...field} className="h-12 rounded-xl" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <FormField
-                          control={form.control}
-                          name="instructions"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Delivery Instructions (Optional)</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Any special notes for the rider..." 
-                                  {...field} 
-                                  className="rounded-xl resize-none h-20" 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="pt-8 border-t border-gray-100 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <ShieldCheck className="w-4 h-4" />
-                        Your data is safe and encrypted
-                      </div>
-                      <Button type="submit" className="h-12 px-8 rounded-full font-bold shadow-lg shadow-primary/20">
-                        Continue to Shipping
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden opacity-50">
-              <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-gray-400" />
-                <h2 className="text-xl font-heading font-bold text-gray-400">Payment Method</h2>
-              </div>
-              <div className="p-8 h-32 flex items-center justify-center italic text-gray-400 text-sm">
-                Locked until shipping is complete
-              </div>
-            </div>
+                <div className="pt-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <ShieldCheck className="w-4 h-4" />
+                    Secure checkout powered by 256-bit encryption
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="h-14 px-12 rounded-full font-bold shadow-lg shadow-primary/20 text-lg transition-transform hover:scale-105 active:scale-95"
+                  >
+                    {isSubmitting ? "Processing Order..." : "Place Order Now"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </div>
 
           {/* Right: Order Summary */}
@@ -379,6 +527,11 @@ export default function Checkout() {
                   <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
                     <ShieldCheck className="w-5 h-5 text-blue-600" />
                     <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider">Secure 256-bit SSL encrypted checkout</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-4 opacity-50 grayscale pt-2">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4" />
                   </div>
                 </div>
               </CardContent>
