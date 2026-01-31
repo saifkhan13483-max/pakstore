@@ -29,10 +29,30 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
+const PAKISTANI_CITIES = [
+  "Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", 
+  "Peshawar", "Quetta", "Hyderabad", "Gujranwala", "Sialkot", "Bahawalpur", 
+  "Sukkur", "Larkana", "Sheikhupura", "Jhang", "Rahim Yar Khan", "Mardan"
+].sort();
+
 const contactSchema = z.object({
   fullName: z.string().min(3, "Full name must be at least 3 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().regex(/^((\+92)|(0))3[0-9]{2}[0-9]{7}$/, "Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)"),
+  address: z.string().min(10, "Please enter your complete street address"),
+  area: z.string().min(3, "Please specify your area/locality"),
+  city: z.string().min(1, "Please select your city"),
+  postalCode: z.string().optional(),
+  instructions: z.string().optional(),
 });
 
 type ContactValues = z.infer<typeof contactSchema>;
@@ -47,6 +67,11 @@ export default function Checkout() {
       fullName: "",
       email: "",
       phone: "",
+      address: "",
+      area: "",
+      city: "",
+      postalCode: "",
+      instructions: "",
     },
   });
 
@@ -165,8 +190,107 @@ export default function Checkout() {
                         )}
                       />
                     </div>
+
+                    <div className="pt-8 border-t border-gray-100">
+                      <h3 className="text-lg font-heading font-bold text-secondary mb-6 flex items-center gap-2">
+                        <Truck className="w-5 h-5 text-primary" /> Shipping Address
+                      </h3>
+                      
+                      <div className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="address"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Street Address</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="House #, Street #, Block/Phase..." 
+                                  {...field} 
+                                  className="rounded-xl resize-none" 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="area"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Area / Locality</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g. Gulberg, DHA, Bahria" {...field} className="h-12 rounded-xl" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="city"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>City</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-12 rounded-xl">
+                                      <SelectValue placeholder="Select your city" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {PAKISTANI_CITIES.map(city => (
+                                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="postalCode"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Postal Code (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g. 54000" {...field} className="h-12 rounded-xl" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="instructions"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Delivery Instructions (Optional)</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Any special notes for the rider..." 
+                                  {...field} 
+                                  className="rounded-xl resize-none h-20" 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
                     
-                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
+                    <div className="pt-8 border-t border-gray-100 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <ShieldCheck className="w-4 h-4" />
                         Your data is safe and encrypted
