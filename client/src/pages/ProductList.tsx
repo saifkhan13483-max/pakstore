@@ -44,7 +44,7 @@ export default function ProductList() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
             <h1 className="text-3xl font-heading font-bold text-secondary capitalize">
-              {category ? `${category} Products` : "All Products"}
+              {category ? `${category.replace(/-/g, ' ')} Products` : "All Products"}
             </h1>
             <p className="text-muted-foreground mt-2">
               Showing {products?.length || 0} results
