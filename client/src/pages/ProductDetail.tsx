@@ -175,10 +175,10 @@ export default function ProductDetail() {
 
               {product.features && Array.isArray(product.features) && (
                 <ul className="space-y-3 mb-8">
-                  {(product.features as any[]).map((feature, i) => (
+                  {(product.features as string[]).map((feature, i) => (
                     <li key={i} className="flex items-center gap-3 text-gray-600">
                       <Check className="w-5 h-5 text-primary shrink-0" />
-                      {String(feature)}
+                      {feature}
                     </li>
                   ))}
                 </ul>
