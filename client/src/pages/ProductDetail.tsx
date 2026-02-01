@@ -57,7 +57,7 @@ export default function ProductDetail() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-secondary mb-2">Product Not Found</h1>
             <p className="text-muted-foreground mb-6">The product you are looking for does not exist.</p>
-            <Button asChild rounded="full">
+            <Button asChild className="rounded-full">
               <Link href="/products">Back to Shop</Link>
             </Button>
           </div>

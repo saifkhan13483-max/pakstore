@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Truck, ShieldCheck, Clock, RefreshCw } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ProductSkeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const { data: products, isLoading } = useProducts();
@@ -94,11 +94,7 @@ export default function Home() {
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-4">
-                    <Skeleton className="h-[300px] w-full rounded-2xl" />
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
+                  <ProductSkeleton key={i} />
                 ))}
               </div>
             ) : products && products.length > 0 ? (
